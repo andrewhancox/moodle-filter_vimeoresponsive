@@ -42,17 +42,22 @@ class filter_vimeoresponsive extends moodle_text_filter {
 
         $matches = [];
 
-        preg_match_all('#{vimeoresponsive_([0-9]+)}#', $text, $matches);
+        preg_match_all('#{vimeoresponsive_([a-z0-9/]+)}#', $text, $matches);
         $results = array_combine($matches[0], $matches[1]);
 
         foreach ($results as $placeholder => $vimeoid) {
-            $text = str_replace("{vimeoresponsive_$vimeoid}", $this->render($vimeoid), $text);
+            $embedelements = explode("/", $vimeoid);
+            $videoid = $embedelements[0];
+            $securitycode  = $embedelements[1] ?? '';
+
+            $text = str_replace("{vimeoresponsive_$vimeoid}", $this->render($videoid, $securitycode), $text);
         }
 
         return $text;
     }
 
-    public function render($vimeoid) {
-        return "<div class='resp-container'><iframe class='resp-iframe' src='https://player.vimeo.com/video/$vimeoid' width='426' height='240' frameborder='0' allow='autoplay; fullscreen; picture-in-picture' allowfullscreen=''></iframe></div>";
+    public function render($videoid, $securitycode) {
+        $url = new moodle_url("https://player.vimeo.com/video/$videoid", ['h' => $securitycode]);
+        return "<div class='resp-container'><iframe class='resp-iframe' src='{$url->out(false)}' width='426' height='240' frameborder='0' allow='autoplay; fullscreen; picture-in-picture' allowfullscreen=''></iframe></div>";
     }
 }
